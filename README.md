@@ -18,5 +18,5 @@ Multi-tenant telehealth platform - Questionnaire → EMR → Payment → Pharmac
 6. **Pharmacy Fulfillment** - Rx sent to partner pharmacy API
 7. **Mobile-First** - Built and tested on Android
 
-Live Demo: (add your vercel link here after deploy)
+
 GitHub: github.com/Nsikak-hubstori/Baskhealth-clone
