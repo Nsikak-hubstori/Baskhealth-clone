@@ -1,22 +1,12 @@
-# Baskhealth Clone - Shopify for Telehealth
+# Bask Health Clone — Shopify for E-Prescribing
 
-Multi-tenant telehealth platform - Questionnaire → EMR → Payment → Pharmacy
+Built with exact stack from job description:
+- Frontend: React, TypeScript, Next.js 14, Tailwind CSS
+- Backend: tRPC, Drizzle ORM, SQL (Neon Postgres), Node.js, SST
+- Features: Multi-tenant, No-code Builder, Dynamic Intake, EMR Dashboard, Pharmacy Fulfillment Mock
+- Live: baskhealth-clone.vercel.app
+- Builder: /builder
+- Intake: /intake
+- Provider: /provider
 
-### Built by Nsikak - WordPress Specialist → Next.js
-
-- Main Project: hubstori.name.ng (Marketplace with custom PHP snippets)
-- Stack: Next.js 14, React, TypeScript, Tailwind CSS, tRPC pattern
-- Device: Built entirely on Android phone (no laptop)
-
-### Features Matching Bask's Job Description
-
-1. **No-code Questionnaire Builder** - Drag medical questions, logic branches
-2. **Multi-tenant Branding** - Each clinic custom domain / colors (like Shopify)
-3. **EMR Integration** - FHIR Patient, Observation resources sync
-4. **Stripe Checkout** - Subscriptions, HSA/FSA support
-5. **HIPAA Audit Trail** - Every action logged, encrypted
-6. **Pharmacy Fulfillment** - Rx sent to partner pharmacy API
-7. **Mobile-First** - Built and tested on Android
-
-
-GitHub: github.com/Nsikak-hubstori/Baskhealth-clone
+This demonstrates end-to-end ownership: form field → tRPC → Drizzle → Postgres → EMR
