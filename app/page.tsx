@@ -1,70 +1,91 @@
 "use client"
-import { useState } from "react"
+import { useState } from "react";
 
-export default function BaskClone(){
-  const [step,setStep]=useState(0)
-  const [answers,setAnswers]=useState<any>({})
-  const questions=[
-    {id:"goal", q:"What is your primary weight loss goal?", options:["Lose 10-20 lbs","Lose 20-50 lbs","Lose 50+ lbs","Maintain weight"]},
-    {id:"bmi", q:"What is your current BMI range?", options:["<25","25-30","30-35","35+"]},
-    {id:"conditions", q:"Any medical conditions?", options:["None","Diabetes","Hypertension","Thyroid","PCOS"]},
-    {id:"meds", q:"Are you currently on GLP-1 medication?", options:["No","Semaglutide","Tirzepatide","Other"]},
-  ]
+export default function Page() {
+  const [step, setStep] = useState(1);
+  const [goal, setGoal] = useState("");
+
+  const next = (g: string) => { setGoal(g); setStep(s => Math.min(s+1, 5)); };
+
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b p-4 flex justify-between items-center">
-        <h1 className="font-bold text-xl">Bask Health • Clone</h1>
-        <span className="text-sm bg-black text-white px-3 py-1 rounded-full">Shopify for Telehealth</span>
-      </header>
-      <main className="max-w-2xl mx-auto p-6 mt-8">
-        <div className="mb-6">
-          <div className="flex gap-2">
-            {[0,1,2,3,4].map(i=>(
-              <div key={i} className={`h-2 flex-1 rounded ${i<=step?"bg-black":"bg-gray-200"}`}/>
-            ))}
-          </div>
-          <p className="text-sm text-gray-500 mt-2">Step {step+1} of 5 • HIPAA Compliant</p>
+    <div className="min-h-screen bg-[#F7F5F2] flex flex-col">
+      {/* Header */}
+      <div className="bg-white border-b border-zinc-100 px-5 py-4 flex justify-between items-center">
+        <div className="flex items-center gap-2 font-bold">
+          <span className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-700">+</span>
+          Bask Health • Clone
         </div>
+        <div className="text-[11px] border border-green-200 text-green-800 bg-green-50 px-3 py-1.5 rounded-full flex items-center gap-1">
+          🔒 HIPAA Compliant
+        </div>
+      </div>
 
-        {step<4 && (
-          <div className="border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-6">{questions[step].q}</h2>
-            <div className="grid gap-3">
-              {questions[step].options.map(o=>(
-                <button key={o} onClick={()=>{
-                  setAnswers({...answers,[questions[step].id]:o}); 
-                  setStep(s=>s+1)
-                }} className={`p-4 border rounded-xl text-left hover:bg-black hover:text-white transition ${answers[questions[step].id]===o?"bg-black text-white":"bg-white"}`}>
-                  {o}
-                </button>
-              ))}
-            </div>
+      {/* Progress */}
+      <div className="bg-white px-6 py-5 border-b border-zinc-100">
+        <div className="max-w-[640px] mx-auto">
+          <div className="flex justify-between text-[13px] text-zinc-500 mb-3">
+            <span>Step {step} of 5</span>
+            <span>{step * 20}% complete</span>
           </div>
-        )}
+          <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
+            <div className="h-full bg-[#8DBF8B] rounded-full transition-all duration-500" style={{ width: `${step*20}%` }} />
+          </div>
+        </div>
+      </div>
 
-        {step===4 && (
-          <div className="border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold">Checkout • Bask EHR + Payments</h2>
-            <div className="mt-4 bg-gray-50 p-4 rounded-xl text-sm">
-              <p>Goal: {answers.goal}</p>
-              <p>BMI: {answers.bmi}</p>
-              <p>Conditions: {answers.conditions}</p>
-              <p>Current Meds: {answers.meds}</p>
-            </div>
-            <div className="mt-6 p-4 border-2 border-dashed rounded-xl">
-              <p className="font-medium">Treatment Recommendation (Mock EMR Logic)</p>
-              <p className="text-sm mt-2 text-gray-600">Based on answers, patient eligible for Tirzepatide compounded. EMR sync: FHIR Patient resource created. Stripe checkout ready.</p>
-              <div className="mt-4 flex gap-2">
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">EMR Synced</span>
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Stripe $299/mo</span>
-                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">HIPAA Log: OK</span>
+      {/* Card */}
+      <div className="flex-1 flex justify-center px-4 py-8">
+        <div className="bg-white w-full max-w-[640px] rounded-[32px] shadow-[0_20px_60px_-30px_rgba(0,0,0,0.15)] border border-zinc-100 p-8 md:p-10">
+
+          {step === 1 && (
+            <>
+              <h1 className="text-[34px] font-semibold leading-[1.1] tracking-tight">What is your primary weight loss goal?</h1>
+              <p className="text-[15px] text-zinc-500 mt-3 mb-8">Choose one to personalize your provider-reviewed plan</p>
+
+              <div className="grid gap-4">
+                {[
+                  { id: "10-20", label: "Lose 10-20 lbs - Kickstart your journey" },
+                  { id: "20-50", label: "Lose 20-50 lbs - Most popular", popular: true },
+                  { id: "50+", label: "Lose 50+ lbs - Transformative plan" },
+                  { id: "maintain", label: "Maintain weight - Stay healthy" },
+                ].map(item => (
+                  <button key={item.id} onClick={() => next(item.id)}
+                    className="group relative text-left w-full p-5 rounded-[16px] border border-zinc-200 hover:border-zinc-900 hover:shadow-lg transition-all flex justify-between items-center bg-white">
+                    {item.popular && <span className="absolute -top-3 right-6 text-[12px] bg-[#CDE6CC] px-3 py-1 rounded-full font-medium">Most popular</span>}
+                    <span className="font-medium text-[15px] pr-4">{item.label}</span>
+                    <span className="w-9 h-9 rounded-full bg-[#E8F3E8] border border-[#CDE6CC] text-green-800 flex items-center justify-center group-hover:bg-zinc-900 group-hover:text-white transition">→</span>
+                  </button>
+                ))}
               </div>
+            </>
+          )}
+
+          {step > 1 && (
+            <>
+              <h1 className="text-[28px] font-semibold">Great! You selected: {goal}</h1>
+              <p className="text-zinc-500 mt-2 mb-6">This is the Bask Health flow — Step {step}. Next would be medical history, lifestyle, and checkout. This is how they build Shopify for Telehealth.</p>
+              <div className="grid gap-3">
+                <button onClick={()=>setStep(s=>s+1)} className="w-full bg-zinc-900 text-white p-4 rounded-full font-medium">Continue → Step {step+1}</button>
+                <button onClick={()=>setStep(1)} className="w-full border border-zinc-200 p-4 rounded-full">Back</button>
+              </div>
+            </>
+          )}
+
+          {step === 5 && (
+            <div className="text-center py-6">
+              <div className="text-5xl mb-4">✅</div>
+              <h2 className="text-2xl font-semibold">Ready for provider review</h2>
+              <p className="text-zinc-500 mt-2">Your Bask Health clone is complete!</p>
             </div>
-            <button onClick={()=>alert("Demo: Would redirect to Bask checkout + EHR dashboard")} className="w-full mt-6 bg-black text-white py-4 rounded-xl font-semibold">Proceed to Checkout →</button>
-            <p className="text-xs text-center mt-3 text-gray-400">Built by Nsikak • Mobile-first • Lagos, NG</p>
+          )}
+
+          <div className="flex justify-center gap-6 mt-10 pt-8 border-t border-zinc-100 text-[12px] text-zinc-500">
+            <span>🛡️ Provider Reviewed</span>
+            <span>💲 No Hidden Fees</span>
+            <span>📅 Cancel Anytime</span>
           </div>
-        )}
-      </main>
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+                      }
