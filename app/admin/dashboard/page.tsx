@@ -74,5 +74,4 @@ export default function ClientDashboard(){
       </div>
     </div>
   )
-      } 
-<button onClick={()=>{localStorage.clear(); window.location.href="/admin"}} className="text-xs opacity-50 underline">Logout</button>
+        }
