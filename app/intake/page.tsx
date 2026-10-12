@@ -27,7 +27,7 @@ export default function IntakePage() {
     all = all.filter((u:any) => u.email!== finalUser.email) // avoid duplicate
     all.push(finalUser)
     localStorage.setItem("bask_all_users", JSON.stringify(all))
-    window.location.href = "/admin"
+    window.location.href = "/intake/dashboard"
   }
 
   const handleCardPay = () => {
