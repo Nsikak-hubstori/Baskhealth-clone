@@ -1,77 +1,104 @@
 "use client"
 import { useEffect, useState } from "react"
-import Link from "next/link"
 
-export default function ClientDashboard(){
-  const [email, setEmail] = useState("client@bask.health")
+export default function AdminPage() {
+  const [allUsers, setAllUsers] = useState<any[]>([])
+  const [selected, setSelected] = useState<any>(null)
 
-  useEffect(()=>{
-    const saved = localStorage.getItem("client_email")
-    if(saved) setEmail(saved)
-  },[])
+  useEffect(() => {
+    const all = JSON.parse(localStorage.getItem("bask_all_users") || "[]")
+    setAllUsers(all)
+    if (all.length === 1) {
+      setSelected(all[0])
+    }
+  }, [])
+
+  const clearAll = () => {
+    if(confirm("Clear all clients?")) {
+      localStorage.removeItem("bask_all_users")
+      localStorage.removeItem("bask_user")
+      setAllUsers([])
+      setSelected(null)
+    }
+  }
+
+  const renderDashboard = (user: any) => {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow">
+        <h2 className="text-2xl font-bold">{user.name}'s Dashboard</h2>
+        <p className="text-gray-500 text-sm mt-1">{user.email} • {user.date}</p>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="p-3 bg-gray-50 rounded-xl"><div className="text-xs text-gray-500">GOAL</div><div className="font-bold">{user.goal}</div></div>
+          <div className="p-3 bg-gray-50 rounded-xl"><div className="text-xs text-gray-500">PLAN</div><div className="font-bold">{user.planName}</div></div>
+        </div>
+
+        {/* DASHBOARD CORRESPONDS TO WHAT THEY CHOSE */}
+        {user.plan === "basic" && (
+          <div className="mt-6 p-5 bg-blue-50 rounded-xl border">
+            <h3 className="font-bold">Basic Dashboard</h3>
+            <p className="mt-2 text-sm">Meal plan, weight tracker, basic lessons.</p>
+          </div>
+        )}
+        {user.plan === "standard" && (
+          <div className="mt-6 p-5 bg-green-50 rounded-xl border">
+            <h3 className="font-bold">Standard Dashboard</h3>
+            <p className="mt-2 text-sm">Everything in Basic + Lab results, chat with coach, advanced analytics.</p>
+          </div>
+        )}
+        {user.plan === "premium" && (
+          <div className="mt-6 p-5 bg-purple-50 rounded-xl border">
+            <h3 className="font-bold">Premium Dashboard - Full Provider Support</h3>
+            <p className="mt-2 text-sm">Everything in Standard + 1-on-1 doctor, prescription, priority support.</p>
+          </div>
+        )}
+
+        <div className="mt-4 text-xs text-gray-400">Payment: {user.paymentMethod}</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b p-4 flex justify-between items-center">
-        <h1 className="font-bold text-lg">Bask Health • Client Portal</h1>
-        <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full">Active</span>
-      </div>
-
-      <div className="max-w-5xl mx-auto p-6 grid md:grid-cols-3 gap-6">
-
-        {/* Left - Profile */}
-        <div className="bg-white rounded-2xl p-6 space-y-4 h-fit">
-          <div className="w-16 h-16 bg-black text-white rounded-full flex items-center justify-center text-xl font-bold">
-            {email[0]?.toUpperCase()}
-          </div>
+    <div className="min-h-screen bg-[#f9f7f2] p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center">
           <div>
-            <p className="font-bold">{email}</p>
-            <p className="text-sm opacity-60">Client ID: #1029</p>
+            <h1 className="text-3xl font-black">Doctor Admin</h1>
+            <p className="mt-1 font-bold">Total Clients Logged In: <span className="bg-black text-white px-3 py-1 rounded-full">{allUsers.length}</span></p>
           </div>
-          <div className="pt-4 border-t space-y-2 text-sm">
-            <p><b>Goal:</b> 20-50 lbs</p>
-            <p><b>BMI:</b> 28.4</p>
-            <p><b>Plan:</b> Semaglutide</p>
-          </div>
-          <Link href="/intake" className="block text-center w-full border py-2 rounded-full text-sm">
-            Retake Intake
-          </Link>
+          <button onClick={clearAll} className="text-sm border px-4 py-2 rounded-full bg-white">Clear All</button>
         </div>
 
-        {/* Center - Treatment */}
-        <div className="md:col-span-2 space-y-6">
+        {allUsers.length === 0 && <div className="mt-20 text-center text-gray-500">No clients yet. Go to /intake to test.</div>}
 
-          <div className="bg-white rounded-2xl p-6">
-            <h2 className="font-bold mb-4">Treatment Status</h2>
-            <div className="flex gap-2 mb-4">
-              <div className="flex-1 bg-black text-white p-3 rounded-xl text-center text-sm">Intake ✓</div>
-              <div className="flex-1 bg-black text-white p-3 rounded-xl text-center text-sm">Review ✓</div>
-              <div className="flex-1 bg-yellow-100 p-3 rounded-xl text-center text-sm">Prescribed • Now</div>
+        {/* IF 1 PERSON - SHOW DASHBOARD DIRECTLY */}
+        {allUsers.length === 1 && selected && (
+          <div className="mt-8">
+            <div className="mb-3 font-bold">Only 1 client - Showing dashboard directly:</div>
+            {renderDashboard(selected)}
+          </div>
+        )}
+
+        {/* IF 2+ PEOPLE - SHOW LIST */}
+        {allUsers.length > 1 && (
+          <div className="mt-8 grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 bg-white rounded-2xl p-4 shadow h-fit">
+              <h3 className="font-bold mb-3">All Clients ({allUsers.length})</h3>
+              <div className="grid gap-2">
+                {allUsers.map((u:any)=>(
+                  <button key={u.id} onClick={()=>setSelected(u)} className={`p-3 rounded-xl text-left border ${selected?.id===u.id?'bg-black text-white':'bg-gray-50'}`}>
+                    <div className="font-bold text-sm">{u.name}</div>
+                    <div className="text-xs opacity-70">{u.planName} • {u.email}</div>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl">
-              <p className="font-bold text-sm">Under Provider Review</p>
-              <p className="text-sm opacity-70">Dr. Sarah will review your intake in 24h and prescribe your personalized plan.</p>
+            <div className="md:col-span-2">
+              {selected? renderDashboard(selected) : <div className="bg-white rounded-2xl p-10 text-center text-gray-400">Select a client to view dashboard</div>}
             </div>
           </div>
-
-          <div className="bg-white rounded-2xl p-6">
-            <h2 className="font-bold mb-2">Your Intake Answers</h2>
-            <div className="text-sm space-y-2 opacity-80">
-              <div className="flex justify-between border-b py-2"><span>Primary goal</span><b>20-50 lbs</b></div>
-              <div className="flex justify-between border-b py-2"><span>Medical history</span><b>No diabetes</b></div>
-              <div className="flex justify-between py-2"><span>Motivation</span><b>Health + Confidence</b></div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-6">
-            <h2 className="font-bold mb-2">Message Provider</h2>
-            <div className="bg-gray-100 p-3 rounded-xl text-sm mb-3">Hi! When will my prescription be ready? — You</div>
-            <div className="bg-black text-white p-3 rounded-xl text-sm w-fit">Reviewing now, will update in 2 hours — Dr. Sarah</div>
-          </div>
-
-        </div>
+        )}
       </div>
     </div>
   )
-        }
+              }
