@@ -1,156 +1,136 @@
 "use client"
-import { useState } from "react";
+import { useState } from "react"
 
-type Data = any;
+export default function IntakePage() {
+  const [step, setStep] = useState(1)
+  const [data, setData] = useState<any>({
+    goal: "", name: "", email: "", plan: "", planName: ""
+  })
+  const [card, setCard] = useState({ number: "", expiry: "", cvc: "", name: "" })
+  const [receipt, setReceipt] = useState("")
 
-export default function BaskClone() {
-  const [step, setStep] = useState(1);
-  const [data, setData] = useState<Data>({ goal: "", conditions: [], bmi: "", meds: "", lifestyle: {}, name: "", email: "", plan: "Tirzepatide" });
-  const [done, setDone] = useState(false);
+  const next = () => setStep(s => s + 1)
+  const back = () => setStep(s => s - 1)
 
-  const saveAndNext = () => {
-    if(step === 4) {
-      const all = JSON.parse(localStorage.getItem("bask_submissions") || "[]");
-      all.unshift({...data, id: Date.now(), date: new Date().toLocaleString(), status: "Pending Review"});
-      localStorage.setItem("bask_submissions", JSON.stringify(all));
+  const saveAndGo = (method: string) => {
+    const finalUser = {
+      id: Date.now().toString(),
+     ...data,
+      paymentMethod: method,
+      date: new Date().toLocaleString(),
+      lastLogin: new Date().toLocaleString(),
     }
-    setStep(s => s+1);
-  };
+    // current user
+    localStorage.setItem("bask_user", JSON.stringify(finalUser))
+    // all users for doctor
+    let all = JSON.parse(localStorage.getItem("bask_all_users") || "[]")
+    all = all.filter((u:any) => u.email!== finalUser.email) // avoid duplicate
+    all.push(finalUser)
+    localStorage.setItem("bask_all_users", JSON.stringify(all))
+    window.location.href = "/admin"
+  }
 
-  if(done) {
-    return (
-      <div className="min-h-screen bg-[#F7F5F2] flex items-center justify-center p-6">
-        <div className="bg-white max-w-[520px] w-full rounded-[32px] p-10 text-center shadow-xl border">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto text-3xl">✓</div>
-          <h1 className="text-3xl font-semibold mt-6">Sent to provider</h1>
-          <p className="text-zinc-500 mt-3 text-sm">EMR created • Payment authorized • Pharmacy queued<br/>Your provider will review in 24h.</p>
-          <div className="bg-[#F7F5F2] p-4 rounded-2xl mt-6 text-left text-sm">
-            <div><b>Plan:</b> {data.plan} - $299/mo</div>
-            <div><b>Goal:</b> {data.goal}</div>
-            <div><b>Patient:</b> {data.name} • {data.email}</div>
-          </div>
-          <a href="/admin" className="block mt-6 w-full bg-black text-white p-4 rounded-full">Go to Provider Dashboard →</a>
-          <button onClick={()=>{setStep(1); setDone(false); setData({})}} className="mt-3 text-sm text-zinc-500">Start new intake</button>
-        </div>
-      </div>
-    )
+  const handleCardPay = () => {
+    const clean = card.number.replace(/\s/g,"")
+    if(clean.length < 12) return alert("Enter card number that looks complete (12-16 digits)")
+    if(card.expiry.length < 4) return alert("Enter expiry e.g 12/28")
+    if(card.cvc.length < 3) return alert("Enter CVV 3 digits")
+    saveAndGo(`Card ending ${clean.slice(-4)}`)
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F5F2] flex flex-col">
-      <header className="bg-white border-b border-zinc-100 px-5 py-4 flex justify-between items-center sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#E8F3E8] rounded-full flex items-center justify-center font-bold text-green-800">+</div>
-          <span className="font-bold tracking-tight">Bask Health • Clone</span>
-          <span className="hidden md:inline text-zinc-400 text-sm ml-2">Shopify for Telehealth</span>
-        </div>
-        <div className="flex gap-2">
-          <a href="/admin" className="text-xs border px-3 py-1.5 rounded-full">Provider Login</a>
-          <span className="text-[11px] border border-green-200 text-green-800 bg-green-50 px-3 py-1.5 rounded-full hidden md:flex">🔒 HIPAA • SSL • HITRUST</span>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#f9f7f2] p-4 md:p-8">
+      <div className="max-w-xl mx-auto bg-white rounded-[24px] p-6 md:p-8 shadow-sm">
+        <div className="text-sm text-gray-400 mb-4">Step {step} of 7</div>
 
-      <div className="bg-white px-6 py-5 border-b border-zinc-100">
-        <div className="max-w-[640px] mx-auto">
-          <div className="flex justify-between text-[12px] text-zinc-500 mb-3 font-medium">
-            <span>STEP {step} OF 5 • {["Goal","Medical","Lifestyle","Profile","Plan"][step-1]}</span>
-            <span>{step*20}% COMPLETE</span>
+        {step === 1 && (
+          <div>
+            <h1 className="text-2xl font-bold">What is your main goal?</h1>
+            <div className="grid gap-3 mt-6">
+              {["Lose weight","Manage blood sugar","Improve metabolism","Better gut health"].map(g=>(
+                <button key={g} onClick={()=>{setData({...data, goal:g}); next()}} className={`p-4 border rounded-xl text-left font-medium ${data.goal===g?'bg-black text-white':''}`}>{g}</button>
+              ))}
+            </div>
           </div>
-          <div className="h-2 bg-zinc-200 rounded-full overflow-hidden"><div className="h-full bg-[#8DBF8B] transition-all duration-500" style={{width: `${step*20}%`}} /></div>
-        </div>
-      </div>
+        )}
 
-      <div className="flex-1 flex justify-center px-4 py-8">
-        <div className="bg-white w-full max-w-[640px] rounded-[32px] shadow-[0_20px_60px_-20px_rgba(0,0,0,0.12)] border border-zinc-100 p-7 md:p-10">
+        {step === 2 && (<div><h1 className="text-2xl font-bold">Medical history</h1><p className="text-gray-500 mt-2">For demo - click continue</p><button onClick={next} className="mt-6 w-full bg-black text-white py-3 rounded-full">Continue</button><button onClick={back} className="w-full mt-3">Back</button></div>)}
+        {step === 3 && (<div><h1 className="text-2xl font-bold">Lifestyle</h1><p className="text-gray-500 mt-2">For demo - click continue</p><button onClick={next} className="mt-6 w-full bg-black text-white py-3 rounded-full">Continue</button><button onClick={back} className="w-full mt-3">Back</button></div>)}
 
-          {step === 1 && (
-            <>
-              <h1 className="text-[34px] font-semibold leading-[1.05] tracking-tight">What is your primary weight loss goal?</h1>
-              <p className="text-[15px] text-zinc-500 mt-3 mb-8">Choose one to personalize your provider-reviewed plan.</p>
-              <div className="grid gap-3">
-                {[
-                  {id:"10-20 lbs", sub:"Kickstart your journey"},
-                  {id:"20-50 lbs", sub:"Most popular - transform in 6 months", pop:true},
-                  {id:"50+ lbs", sub:"Comprehensive metabolic reset"},
-                  {id:"Maintain", sub:"Stay healthy & prevent regain"},
-                ].map(o=>(
-                  <button key={o.id} onClick={()=>{setData({...data, goal:o.id}); setStep(2)}} className="group relative text-left w-full p-5 rounded-[18px] border border-zinc-200 hover:border-zinc-900 hover:shadow-md transition-all bg-white flex justify-between items-center">
-                    {o.pop && <span className="absolute -top-2.5 right-6 text-[11px] font-semibold bg-[#CDE6CC] text-green-900 px-3 py-1 rounded-full">MOST POPULAR</span>}
-                    <div><div className="font-medium">{o.id}</div><div className="text-[13px] text-zinc-500">{o.sub}</div></div>
-                    <div className="w-9 h-9 rounded-full bg-[#E8F3E8] border flex items-center justify-center group-hover:bg-black group-hover:text-white">→</div>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <h1 className="text-[30px] font-semibold leading-tight">Medical intake (EMR)</h1>
-              <p className="text-sm text-zinc-500 mt-2 mb-6">Required for provider review. HIPAA encrypted.</p>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {["Diabetes","Hypertension","Thyroid","PCOS","Heart Disease","Depression"].map(c=>(
-                  <label key={c} className="border rounded-xl p-3 text-sm flex gap-2 cursor-pointer hover:bg-zinc-50"><input type="checkbox" onChange={e=>{const list = e.target.checked? [...(data.conditions||[]), c] : (data.conditions||[]).filter((x:string)=>x!==c); setData({...data, conditions:list})}} /> {c}</label>
-                ))}
-              </div>
-              <input placeholder="Current weight / Height (for BMI)" className="w-full border rounded-xl p-4 text-sm mb-3" value={data.bmi||""} onChange={e=>setData({...data,bmi:e.target.value})} />
-              <textarea placeholder="Current medications & allergies..." className="w-full border rounded-xl p-4 text-sm h-24" value={data.meds||""} onChange={e=>setData({...data,meds:e.target.value})} />
-              <button onClick={saveAndNext} className="w-full mt-6 bg-zinc-900 text-white p-4 rounded-full font-medium">Continue</button>
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <h1 className="text-[30px] font-semibold">Lifestyle</h1>
-              <div className="mt-6 grid gap-4 text-sm">
-                <select className="border rounded-xl p-4 w-full" onChange={e=>setData({...data, lifestyle:{...data.lifestyle, activity:e.target.value}})}><option>Activity level</option><option>Sedentary</option><option>Lightly active</option><option>Very active</option></select>
-                <select className="border rounded-xl p-4 w-full" onChange={e=>setData({...data, lifestyle:{...data.lifestyle, smoking:e.target.value}})}><option>Do you smoke?</option><option>Never</option><option>Sometimes</option><option>Daily</option></select>
-                <label className="flex gap-2 items-center mt-2"><input type="checkbox" /> I agree to telehealth consent & terms</label>
-              </div>
-              <button onClick={saveAndNext} className="w-full mt-8 bg-zinc-900 text-white p-4 rounded-full">Continue to profile</button>
-            </>
-          )}
-
-          {step === 4 && (
-            <>
-              <h1 className="text-[30px] font-semibold">Your profile</h1>
-              <p className="text-sm text-zinc-500 mt-2 mb-5">Shipping & contact for pharmacy fulfillment.</p>
-              <div className="grid gap-3">
-                <input placeholder="Full legal name" className="border rounded-xl p-4 text-sm" onChange={e=>setData({...data,name:e.target.value})} />
-                <input placeholder="Email" className="border rounded-xl p-4 text-sm" onChange={e=>setData({...data,email:e.target.value})} />
-                <input placeholder="Phone + Date of Birth" className="border rounded-xl p-4 text-sm" onChange={e=>setData({...data,phone:e.target.value})} />
-                <input placeholder="Shipping address" className="border rounded-xl p-4 text-sm" onChange={e=>setData({...data,address:e.target.value})} />
-              </div>
-              <button onClick={saveAndNext} className="w-full mt-6 bg-zinc-900 text-white p-4 rounded-full">Continue to plan →</button>
-            </>
-          )}
-
-          {step === 5 && (
-            <>
-              <h1 className="text-[30px] font-semibold">Choose your plan</h1>
-              <p className="text-sm text-zinc-500 mt-2 mb-6">Subscription • Cancel anytime • Provider reviewed</p>
-              <div className="grid gap-3">
-                {[
-                  {name:"Tirzepatide", price:"$299/mo", badge:"Best Results"},
-                  {name:"Semaglutide", price:"$199/mo", badge:"Most Affordable"},
-                  {name:"Oral Semaglutide", price:"$149/mo", badge:"Needle-free"},
-                ].map(p=>(
-                  <button key={p.name} onClick={()=>setData({...data, plan:p.name})} className={`text-left p-5 rounded-2xl border-2 transition ${data.plan===p.name? "border-black bg-zinc-50" : "border-zinc-200"}`}>
-                    <div className="flex justify-between"><span className="font-semibold">{p.name}</span><span className="text-xs bg-green-100 px-2 py-1 rounded-full">{p.badge}</span></div>
-                    <div className="text-sm text-zinc-600 mt-1">{p.price} • Includes provider + meds + shipping</div>
-                  </button>
-                ))}
-              </div>
-              <button onClick={()=>setDone(true)} className="w-full mt-8 bg-black text-white p-4 rounded-full font-semibold">Pay & Send to Provider → ${data.plan==="Tirzepatide"? "299" : data.plan==="Semaglutide"? "199" : "149"}</button>
-              <p className="text-[11px] text-center text-zinc-400 mt-3">Secure Stripe • 256-bit SSL • Pharmacy partner: TruePill mock</p>
-            </>
-          )}
-
-          <div className="flex justify-center gap-6 mt-10 pt-7 border-t text-[11px] text-zinc-400">
-            <span>🛡️ Provider Reviewed</span><span>💳 No Hidden Fees</span><span>📦 Free Shipping</span>
+        {step === 4 && (
+          <div>
+            <h1 className="text-2xl font-bold">Your details</h1>
+            <input placeholder="Full name" className="w-full border p-3 rounded-xl mt-4" value={data.name} onChange={e=>setData({...data, name:e.target.value})} />
+            <input placeholder="Email" className="w-full border p-3 rounded-xl mt-3" value={data.email} onChange={e=>setData({...data, email:e.target.value})} />
+            <button disabled={!data.name ||!data.email} onClick={next} className="mt-6 w-full bg-black text-white py-3 rounded-full disabled:opacity-50">Continue</button>
+            <button onClick={back} className="w-full mt-3">Back</button>
           </div>
-        </div>
+        )}
+
+        {step === 5 && (
+          <div>
+            <h1 className="text-2xl font-bold">Choose your plan</h1>
+            <div className="grid gap-3 mt-6">
+              {[
+                {id:"basic", name:"Basic - $99", desc:"Starter dashboard"},
+                {id:"standard", name:"Standard - $199", desc:"Lab + chat"},
+                {id:"premium", name:"Premium - $299", desc:"Full provider support"},
+              ].map(p=>(
+                <button key={p.id} onClick={()=>setData({...data, plan:p.id, planName:p.name})} className={`p-4 border rounded-xl text-left ${data.plan===p.id?'bg-black text-white':''}`}>
+                  <div className="font-bold">{p.name}</div><div className="text-sm opacity-70">{p.desc}</div>
+                </button>
+              ))}
+            </div>
+            <button disabled={!data.plan} onClick={next} className="mt-6 w-full bg-black text-white py-3 rounded-full disabled:opacity-50">Continue</button>
+            <button onClick={back} className="w-full mt-3">Back</button>
+          </div>
+        )}
+
+        {step === 6 && (
+          <div className="text-center">
+            <div className="bg-yellow-100 border-2 border-yellow-500 rounded-2xl p-6 text-left">
+              <h1 className="text-2xl font-black text-center">⚠️ PLEASE NOTE</h1>
+              <p className="mt-4 text-[16px] font-bold leading-relaxed">
+                This website is just a clone project built for portfolio purposes. Please DO NOT make any real payment.
+              </p>
+              <p className="mt-3 font-bold">
+                You can enter any fake bank card number, CVV, and expiry date. As long as the numbers look complete like a real bank card, it will take you directly to the dashboard that corresponds to the plan you chose.
+              </p>
+            </div>
+            <button onClick={next} className="mt-8 w-full bg-black text-white py-4 rounded-full font-bold text-lg">I Understand, Continue to Payment</button>
+            <button onClick={back} className="w-full mt-3">Back</button>
+          </div>
+        )}
+
+        {step === 7 && (
+          <div>
+            <h1 className="text-2xl font-bold">Payment - {data.planName}</h1>
+            <div className="mt-6 border rounded-2xl p-5">
+              <h3 className="font-bold">Pay with Card (Demo - Accepts Any Fake Card)</h3>
+              <input placeholder="Card Number e.g 4242 4242 4242 4242" className="w-full border p-3 rounded-xl mt-3" value={card.number} onChange={e=>setCard({...card, number:e.target.value})} />
+              <div className="flex gap-3 mt-3">
+                <input placeholder="MM/YY" className="w-1/2 border p-3 rounded-xl" value={card.expiry} onChange={e=>setCard({...card, expiry:e.target.value})} />
+                <input placeholder="CVV" className="w-1/2 border p-3 rounded-xl" value={card.cvc} onChange={e=>setCard({...card, cvc:e.target.value})} />
+              </div>
+              <input placeholder="Name on card" className="w-full border p-3 rounded-xl mt-3" value={card.name} onChange={e=>setCard({...card, name:e.target.value})} />
+              <button onClick={handleCardPay} className="mt-4 w-full bg-black text-white py-3 rounded-full font-bold">Pay & Go to Dashboard</button>
+            </div>
+
+            <div className="mt-6 border-2 border-dashed rounded-2xl p-5 bg-gray-50">
+              <h3 className="font-bold">Or Bank Transfer</h3>
+              <div className="mt-3 bg-white p-4 rounded-xl border font-mono text-sm leading-6">
+                <div>Bank: <b>Lead Bank</b></div>
+                <div>Account Number: <b className="text-base">215187949201</b></div>
+                <div>Account Name: <b>Nsikak Etim</b></div>
+                <div className="mt-2 text-xs">For USD from any country: Use Grey/Geegpay USD account or wire to domiciliary account.</div>
+              </div>
+              <input placeholder="Paste transfer reference / receipt" className="w-full border p-3 rounded-xl mt-3" value={receipt} onChange={e=>setReceipt(e.target.value)} />
+              <button onClick={()=>saveAndGo(`Transfer - ${receipt}`)} className="mt-3 w-full bg-white border-2 border-black py-3 rounded-full font-bold">I Have Transferred - Go to Dashboard</button>
+            </div>
+            <button onClick={back} className="w-full mt-6 text-gray-500">Back</button>
+          </div>
+        )}
       </div>
     </div>
   )
-            }
+                                                                                                 }
